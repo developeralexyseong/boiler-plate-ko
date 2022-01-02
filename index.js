@@ -2,7 +2,6 @@ const express = require('express');
 const app = express();
 const port = 5000;
 
-// mongodb+srv://mitku:<password>@boilerplate.2kxww.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
 const mongoose = require('mongoose');
 
 mongoose.connect('mongodb+srv://mitku:1234@boilerplate.2kxww.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', {
@@ -14,3 +13,4 @@ app.get('/', (req, res) => {
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+
