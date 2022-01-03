@@ -122,14 +122,5 @@ app.get('/api/users/logout', auth, (req, res) => {
   });
 });
 
-// app.get("/api/users/logout", auth, (req, res) => {
-//   User.findOneAndUpdate({ _id: req.user._id }, { token: "" }, (error, user) => {
-//     if (error) return res.json({ success: false, error });
-//     return res.status(200).send({
-//       success: true,
-//     });
-//   });
-// });
-
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
