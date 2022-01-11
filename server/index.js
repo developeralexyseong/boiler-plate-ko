@@ -1,8 +1,6 @@
 const express = require('express');
 // express app 생성, 포트 고정.
 const app = express();
-const port = 5000;
-const router = express.Router();
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const config = require('./config/key');
@@ -20,15 +18,24 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 const mongoose = require('mongoose');
-const { response } = require('express');
 
 mongoose.connect(config.mongoURI, {
+  // 이제 적지않아도 된다고 합니다. 
+  // useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false
 }).then(() => console.log('MongoDB Connected...'))
 .catch(err => console.log(err));
 
 app.get('/', (req, res) => {
-  res.send('2022 happy new year! have alot of luck in this year!');
+  res.send('2022 happy new year!');
 });
+
+// client에서 get요청보낸것
+app.get('/api/hello', (req, res) => {
+  // 원래 route같은 경우에 req받아서 할거하고 res를 줌.
+  // 우리는 할거없으니 안녕하세요나보냅니다.
+
+  res.send('안녕하세요~')
+})
 
 app.post('/api/users/register', (req, res) => {
   //회원 가입 시 필요한 정보들을 client에서 가져온 뒤 DB에 넣어줌.
@@ -38,7 +45,7 @@ app.post('/api/users/register', (req, res) => {
   // 정보들을 user model에 저장.
   user.save((err, userInfo) => {
     // 실패하면 json형태로 전달, err메시지도 함께 전달
-    if(err) return res.json({ success: false, err})
+    if(err) return res.json({ success: false, err })
     // status 200은 성공했다는 의미.
     return res.status(200).json({
       success: true
@@ -51,7 +58,7 @@ app.post('/api/users/register', (req, res) => {
 // 로그인 기능만들기
 app.post('/api/users/login', (req, res) => {
 
-  
+  console.log('ping')
   // 첫번째 할 일 : 요청된 이메일을 데이터베이스에서 있는지 찾습니다.
   // findOne()몽고디비에서 제공하는 함수
   User.findOne({ email: req.body.email }, (err, user) => {
@@ -62,29 +69,29 @@ app.post('/api/users/login', (req, res) => {
       })
     }
 
-    // 두번재 할 일 : 요청할 현재 이메일이 데이터베이스에 있다면 비밀번호가 맞는지 확인합니다.
+    //요청된 이메일이 데이터 베이스에 있다면 비밀번호가 맞는 비밀번호 인지 확인.
     user.comparePassword(req.body.password, (err, isMatch) => {
-      // 비밀번호가 틀렸을 경우.
-      if(!isMatch)
-        return res.json({ loginSuccess: false, message: '비밀번호가 틀렸습니다. '});
-    })
+      // console.log('err',err)
 
-    // 마지막 할 일 : 비밀번호까지 맞다면 해당 user를 위한 token을 생성합니다.
-    user.generateToken((err, user) => {
-      // status 400은 error 가 있다는 것
-      if (err) return res.status(400).send(err);
+      // console.log('isMatch',isMatch)
 
-      // 토큰을 저장한다. 어디에 ? 쿠키 또는 로컬스토리지
-      // 쿠키는 console창 application 탭에 cookies
-      // LocalStorage 또는 Session Storage 에도 저장가능 (어디에 저장해야 안전한지는 논란이 많습니다. 각기 장단점 존재.)
-      // user.toekn이 쿠키입니다. x_auth라는이름으로 웹 어플리케이션 Cookies에 저장해보도록 하겠습니다.
-      //  status 200은 성공했다는 의미. (userid도 함께 보내줍니다. )
-      res.cookie("x_auth", user.token) 
-      .status(200)
-      .json({ loginSuccess: true, userId: user._id });
+      if (!isMatch)
+        return res.json({ loginSuccess: false, message: "비밀번호가 틀렸습니다." })
+
+      //비밀번호 까지 맞다면 토큰을 생성하기.
+      user.generateToken((err, user) => {
+        // 400은에러가 있다는 의미.
+        if (err) return res.status(400).send(err);
+
+        // 토큰을 저장한다.  어디에 ?  쿠키 , 로컳스토리지 
+        res.cookie("x_auth", user.token)
+          .status(200) // 200은 성공의미, user._id 도 같이보내줍니다.
+          .json({ loginSuccess: true, userId: user._id })
+      })
     })
   })
 })
+
 
 // 인증과 관련된 부분은 복잡. login route와 마찬가지로 복잡한 부분임을 생각하고 반복숙달하도록 합니다.
 // auth라는 middleware 사용 
@@ -122,5 +129,8 @@ app.get('/api/users/logout', auth, (req, res) => {
   });
 });
 
+
+// port가 5000번
+const port = 5000;
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 

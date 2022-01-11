@@ -68,7 +68,6 @@ userSchema.methods.comparePassword = function(plainPassword, cb) {
     // 에러는 없고, isMatch는 true일 것.
     cb(null, isMatch);
   })
-
 };
 
 userSchema.methods.generateToken = function(cb) {
